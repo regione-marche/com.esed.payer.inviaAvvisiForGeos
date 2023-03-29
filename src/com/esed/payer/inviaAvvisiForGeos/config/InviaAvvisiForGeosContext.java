@@ -227,7 +227,7 @@ public class InviaAvvisiForGeosContext implements Serializable {
 			String key = String.format("cbill.%s.%s.%s", codiceUtente,societa ,dominio.trim()); 
 			String codiceCbill = getProperties().getProperty(key);
 			if(codiceCbill==null || codiceCbill.length() == 0)
-				System.out.println("Manca configurazione Codice Autorizzazione su file: "+key);
+				System.out.println("Manca configurazione Codice Cbill su file: "+key);
 			else {
 				codiceCbill = codiceCbill.trim();
 			}

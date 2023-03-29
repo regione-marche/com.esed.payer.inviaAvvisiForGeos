@@ -541,7 +541,7 @@ public class InviaAvvisiForGeosCore {
 								}
 								
 								else {
-									throw new RuntimeException("Manca configurazione Codice Autorizzazione/Codice cbill: " + key);
+									throw new RuntimeException("Manca configurazione Codice Autorizzazione/Codice Cbill: " + key);
 								}
 							}
 								
@@ -569,61 +569,6 @@ public class InviaAvvisiForGeosCore {
 						}
 
 						file.listaDocumenti.add(doc);
-						
-						/*
-						file = new File512(tipoTemplate, gruppo, codiceUtente, ente, idFlusso,
-							descrizioneEnte.equals("") ? doc.descrizioneEnte : descrizioneEnte); // LUCAP_04032020
-						
-						file.cBill = f.cbill;
-						file.codiceAutorizzazione = f.codiceAutorizzazione;
-						files.put(key, file);
-						file.listaDocumenti.add(doc);
-
-						if (f.cbill == null || f.codiceAutorizzazione == null) {
-							
-							CommonsSOAPBindingStub commonsWs = getCommonsSOAPBindingStub(codiceUtente, commonsWsUrl);
-							
-							System.out.println("Ente: " + descrizioneEnte.toString() + " " + 
-									codiceUtente.toString()  + " " + ente.toString()  + " " + servizio.toString());
-							
-							
-							ConfigPagamento configPagamento = pConfigPagamento(commonsWs,f,doc,"WEB",servizio);
-<<<<<<< com.esed.payer.inviaAvvisiForGeos/src/com/esed/payer/inviaAvvisiForGeos/components/InviaAvvisiForGeosCore.java
-							  
-							 
-							if(configPagamento == null)
-								configPagamento = pConfigPagamento(commonsWs,f,doc,"PSP",servizio);
-=======
-							
-							if(configPagamento == null) {
-								configPagamento = pConfigPagamento(commonsWs,f,doc,"PSP",servizio);
-							}
-								
-							    
-							file = new File512(tipoTemplate, gruppo, codiceUtente, ente, idFlusso,
-									descrizioneEnte.equals("") ? doc.descrizioneEnte : descrizioneEnte); // LUCAP_04032020
-							file.societa = f.societa;
-							file.dataElaborazione = dataOraElaborazione;
-							file.dataOra = inviaAvvisiForGeosContext.formatDate(dataOraElaborazione, "yyyyMMddHHmmss");
->>>>>>> com.esed.payer.inviaAvvisiForGeos/src/com/esed/payer/inviaAvvisiForGeos/components/InviaAvvisiForGeosCore.java
-							
-							
-							if(configPagamento!=null) {
-								file.cBill = configPagamento.getCbillStampaAvvisoPagoPa();
-								file.codiceAutorizzazione = configPagamento.getAutorizzazioneStampaAvvisoPagoPa();
-							}
-
-							
-							if(configPagamento.getCbillStampaAvvisoPagoPa() == null) {
-								throw new RuntimeException("Manca configurazione cbill: "+key);
-							}
-							
-							else {
-								if(configPagamento.getAutorizzazioneStampaAvvisoPagoPa() == null)
-								throw new RuntimeException("Manca configurazione Autorizzazione: "+key);
-							}
-						}
-						*/
 					}
 					// ini YLM PG22XX05
 					if ( erroreFlusso ) {
