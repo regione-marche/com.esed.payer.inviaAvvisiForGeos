@@ -495,7 +495,13 @@ public class InviaAvvisiForGeosCore {
 							continue;
 						} 
 						// fine YLM PG22XX05
-						
+
+						//PAGONET-541 - inizio
+						if(doc.flagMultiBeneficiario!=null && doc.flagMultiBeneficiario.equals("Y")) {
+							System.out.println("template post flag flagMultiBeneficiario ");
+							tipoTemplate = "STANDARD_";
+						}
+						//PAGONET-541 - fine
 						// raggruppamento
 						File512.GruppoAvvisi gruppo;
 

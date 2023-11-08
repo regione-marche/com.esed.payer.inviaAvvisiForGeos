@@ -206,6 +206,9 @@ public class InviaAvvisiForGeosDAO {
 		String importoCentesimi = leftZeroPad( doc.importoTotale,4,6);
 			
 		doc.codiceBarcode = String.format("(415)%s(8020)%s(3902)%s", getBarcodeParameter1(resultSet,doc.numAvvisoPagoPa.trim()),doc.numAvvisoPagoPa,importoCentesimi);
+		doc.flagMultiBeneficiario = resultSet.getString("FLAG_MULTIBEN");	//PAGONET-541
+		
+		
 		return doc;
 	}
 	
