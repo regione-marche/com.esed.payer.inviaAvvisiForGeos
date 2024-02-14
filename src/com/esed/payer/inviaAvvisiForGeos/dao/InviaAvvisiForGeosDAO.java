@@ -168,7 +168,14 @@ public class InviaAvvisiForGeosDAO {
 		deb.indirizzo = resultSet.getString("DEB_INDIRIZZO");
 		deb.comune = resultSet.getString("DEB_COMUNE");
 		deb.provincia = resultSet.getString("DEB_PROVINCIA");
-		deb.cap = resultSet.getString("DEB_CAP");
+		String[] capIndirizzo = deb.indirizzo.split("\\|");
+		if(capIndirizzo[1].length()>0) {
+			System.out.println("capIndirizzo[1] (PARTE CAP)" + capIndirizzo[1]);
+			deb.cap = capIndirizzo[1];
+		}else {
+			System.out.println("Cap DEB_CAP " + deb.cap);
+			deb.cap = resultSet.getString("DEB_CAP");
+		}
 		deb.mail = resultSet.getString("DEB_MAIL");
 		deb.pec = resultSet.getString("DEB_PEC");
 		deb.codiceFiscaleAlternativo = resultSet.getString("DEB_CODICE_FISCALE_ALTERNATIVO");
