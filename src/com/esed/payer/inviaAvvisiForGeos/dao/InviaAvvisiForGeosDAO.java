@@ -168,7 +168,7 @@ public class InviaAvvisiForGeosDAO {
 		deb.indirizzo = resultSet.getString("DEB_INDIRIZZO");
 		deb.comune = resultSet.getString("DEB_COMUNE");
 		deb.provincia = resultSet.getString("DEB_PROVINCIA");
-		if(deb.indirizzo.contains("|")) {
+		if(deb.indirizzo!=null && deb.indirizzo.contains("|")) {
 		  String[] capIndirizzo = deb.indirizzo.split("\\|");
 		  if(capIndirizzo[1].length()>0) {
 				System.out.println("capIndirizzo[1] (PARTE CAP)" + capIndirizzo[1]);
