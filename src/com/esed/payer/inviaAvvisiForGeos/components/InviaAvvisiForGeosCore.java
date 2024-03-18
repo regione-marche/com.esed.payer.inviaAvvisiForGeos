@@ -10,15 +10,7 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -72,6 +64,8 @@ public class InviaAvvisiForGeosCore {
 	private static Logger logger = Logger.getLogger(InviaAvvisiForGeosCore.class);
 	private static String PRINT_REPORT = "REPORT";
 	private static String PRINT_SYSOUT = "SYSOUT";
+
+	private Map<String, String> confForCuteCute;
 	
 	// ini YLM PG22XX05
 	private String listaErrori =""; 
@@ -194,6 +188,7 @@ public class InviaAvvisiForGeosCore {
 
 		try {
 			config = PropertiesLoader.load(fileConf);
+			caricaConfigurazioni(config);
 		} catch (FileNotFoundException e) {
 			printRow(PRINT_SYSOUT, "File properties di configurazione " + fileConf + " non trovato");
 			throw new Exception();
@@ -241,6 +236,17 @@ public class InviaAvvisiForGeosCore {
 			else
 				i++;
 		}
+	}
+
+	private void caricaConfigurazioni(Properties config) {
+		 String codiceUtente = inviaAvvisiForGeosContext.getCodiceUtente();
+
+		confForCuteCute = config.keySet().stream()
+				.filter(prop -> prop.toString().contains(codiceUtente))
+				.collect(Collectors.toMap(
+                        Object::toString,
+						prop -> config.getProperty(prop.toString())
+				));
 	}
 
 	private File[] getInputFiles(String inputDirFile) throws Exception {
@@ -457,6 +463,16 @@ public class InviaAvvisiForGeosCore {
 			////String codiceAut;
 			// PAGONET-368
 
+/*
+			List<Flusso> flussoMultiBeneficiario = listaFlussi
+					.stream()
+					.filter( flusso -> flusso.listaDebitori.stream()
+					.anyMatch(deb -> deb.listaDocumenti.stream()
+					.anyMatch(doc -> doc.flagMultiBeneficiario.equals("Y"))))
+					.limit(2)
+					.collect(Collectors.toList());
+ */
+
 			for (Flusso f : listaFlussi) {
 				for (Debitore deb : f.listaDebitori) {
 					for (Documento doc : deb.listaDocumenti) {
@@ -476,45 +492,45 @@ public class InviaAvvisiForGeosCore {
 							}
 						}
 						String tipoIban = ibanPostale ? "POSTE" : "STANDARD";
-						
+
 						// ini YLM PG22XX05
 						String tipoTemplate = "";
 
 						try {
-							
-							if("POSTE".equals(tipoIban))
-									tipoTemplate = "POSTE_";
+
+							if ("POSTE".equals(tipoIban))
+								tipoTemplate = "POSTE_";
 							else
-									tipoTemplate = "STANDARD_";
+								tipoTemplate = "STANDARD_";
 
 							// Asseganazione disabilitata PAGONET-368
 							//tipoTemplate = inviaAvvisiForGeosContext.getTipoTemplate(codiceUtente, ente, servizio, tipoIban);
-							
+
 						} catch (Exception e) {
 							erroreFlusso = true;
 							listaFlussiConErrori.add(idFlusso);
 							//lista errori flusso per email, in caso tutto il resto vada a buon fine
-							this.listaErrori += System.lineSeparator() + " Il flusso con id " +  idFlusso + " presenta l'errore :" + e.getMessage();
+							this.listaErrori += System.lineSeparator() + " Il flusso con id " + idFlusso + " presenta l'errore :" + e.getMessage();
 							continue;
-						} 
+						}
 						// fine YLM PG22XX05
 
 						//PAGONET-541 - inizio
-						if(doc.flagMultiBeneficiario!=null && doc.flagMultiBeneficiario.equals("Y")) {
+						if (doc.flagMultiBeneficiario != null && doc.flagMultiBeneficiario.equals("Y")) {
 							System.out.println("template post flag flagMultiBeneficiario ");
-							
-							if(inviaAvvisiForGeosContext.getProperties().getProperty(String.format("archivioCarichiWs.%s.STAMPAPOSTEMB", codiceUtente))
-									.equals("N")) {
-								tipoTemplate = "STANDARD_";
-							}else {
-								if(tipoIban.equals("POSTE")) {
-									tipoTemplate = "POSTE_";
-								}else {
-									tipoTemplate = "STANDARD_";
-								}
-							}
 
+							if (confForCuteCute.get("archivioCarichiWs." + inviaAvvisiForGeosContext.getCodiceUtente() + ".STAMPAPOSTEMB").equals("N")) {
+								tipoTemplate = "STANDARD_";
+							}
+						 else {
+							if (tipoIban.equals("POSTE")) {
+								tipoTemplate = "POSTE_";
+							} else {
+								tipoTemplate = "STANDARD_";
+							}
+						  }
 						}
+
 						//PAGONET-541 - fine
 						// raggruppamento
 						File512.GruppoAvvisi gruppo;
@@ -525,17 +541,17 @@ public class InviaAvvisiForGeosCore {
 							gruppo = GruppoAvvisi.PEC;
 						else if (doc.debitore.mail != null && doc.debitore.mail.trim().length() > 0)
 							gruppo = GruppoAvvisi.MAIL;
-						else if (doc.debitore.provincia!=null && doc.debitore.provincia.equalsIgnoreCase("EE"))
+						else if (doc.debitore.provincia != null && doc.debitore.provincia.equalsIgnoreCase("EE"))
 							gruppo = GruppoAvvisi.DOC_EE;
 						else
 							gruppo = GruppoAvvisi.DOC_ITALIA;
 
 						String key = tipoTemplate + "." + codiceUtente + "." + ente + "." + idFlusso + "." + gruppo;
-						
+
 						File512 file = files.get(key);
 
 						String descrizioneEnte = doc.descrizioneEnte.split("/")[0].trim(); // LUCAP_04032020
-						
+
 						if (file == null) {
 							file = new File512(tipoTemplate, gruppo, codiceUtente, ente, idFlusso,
 									descrizioneEnte.equals("") ? doc.descrizioneEnte : descrizioneEnte); // LUCAP_04032020
@@ -547,41 +563,39 @@ public class InviaAvvisiForGeosCore {
 //									f.societa, ente);
 							String codiceAutorizzazione = inviaAvvisiForGeosContext.getCodiceAutorizzazione(codiceUtente,
 									f.societa, ente);
-							
+
 							String cBill = inviaAvvisiForGeosContext.getCbill(codiceUtente, f.societa, deb.idDominio);
-							
-							if((codiceAutorizzazione==null || codiceAutorizzazione.length()==0) || (cBill == null || cBill.length()==0))  {
+
+							if ((codiceAutorizzazione == null || codiceAutorizzazione.length() == 0) || (cBill == null || cBill.length() == 0)) {
 								commonsWs = getCommonsSOAPBindingStub(codiceUtente, commonsWsUrl);
-								configPagamento = pConfigPagamento(commonsWs,f,doc,"WEB",servizio);
-								if(configPagamento == null)
-									configPagamento = pConfigPagamento(commonsWs,f,doc,"PSP",servizio);
-								if(configPagamento!=null) {
+								configPagamento = pConfigPagamento(commonsWs, f, doc, "WEB", servizio);
+								if (configPagamento == null)
+									configPagamento = pConfigPagamento(commonsWs, f, doc, "PSP", servizio);
+								if (configPagamento != null) {
 									codiceAutorizzazione = configPagamento.getAutorizzazioneStampaAvvisoPagoPa();
 									cBill = configPagamento.getCbillStampaAvvisoPagoPa();
-								}
-								
-								else {
+								} else {
 									throw new RuntimeException("Manca configurazione Codice Autorizzazione/Codice Cbill: " + key);
 								}
 							}
-								
-							
-							if(codiceAutorizzazione==null || codiceAutorizzazione.trim().length()==0)  {
+
+
+							if (codiceAutorizzazione == null || codiceAutorizzazione.trim().length() == 0) {
 								throw new RuntimeException("Manca configurazione Codice Autorizzazione: " + key);
 							} else {
-								if(cBill == null || cBill.trim().length()==0) {
+								if (cBill == null || cBill.trim().length() == 0) {
 									throw new RuntimeException("Manca configurazione Codice cbill: " + key);
-								}else {
-									if(cBill.length() > 10) {
+								} else {
+									if (cBill.length() > 10) {
 										throw new RuntimeException("Configurazione Codice Cbill maggiore di 10 caratteri: " + key);
 									}
-								file.codiceAutorizzazione = codiceAutorizzazione;
-								file.cBill = cBill;
-							  }
+									file.codiceAutorizzazione = codiceAutorizzazione;
+									file.cBill = cBill;
+								}
 							}
 
 							//PAGONET - 368 - fine
-							
+
 							//file.cBill = inviaAvvisiForGeosContext.getCbill(codiceUtente, f.societa, deb.idDominio);
 							f.cbill = file.cBill; // SB 19042019
 							f.codiceAutorizzazione = file.codiceAutorizzazione; // SB 19042019
@@ -591,12 +605,13 @@ public class InviaAvvisiForGeosCore {
 						file.listaDocumenti.add(doc);
 					}
 					// ini YLM PG22XX05
-					if ( erroreFlusso ) {
+					if (erroreFlusso) {
 						continue;
 					}
 					// fine YLM PG22XX05
-				}	
+				}
 			}
+
 			
 			// ini YLM PG22XX05
 			if ( erroreFlusso ) {
