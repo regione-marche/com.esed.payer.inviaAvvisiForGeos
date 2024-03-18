@@ -519,7 +519,8 @@ public class InviaAvvisiForGeosCore {
 						if (doc.flagMultiBeneficiario != null && doc.flagMultiBeneficiario.equals("Y")) {
 							System.out.println("template post flag flagMultiBeneficiario ");
 
-							if (confForCuteCute.get("archivioCarichiWs." + inviaAvvisiForGeosContext.getCodiceUtente() + ".STAMPAPOSTEMB").equals("N")) {
+							if (confForCuteCute.get("archivioCarichiWs." + inviaAvvisiForGeosContext.getCodiceUtente() + ".STAMPAPOSTEMB") != null
+						&& confForCuteCute.get("archivioCarichiWs." + inviaAvvisiForGeosContext.getCodiceUtente() + ".STAMPAPOSTEMB").equals("N")) {
 								tipoTemplate = "STANDARD_";
 							}
 						 else {
