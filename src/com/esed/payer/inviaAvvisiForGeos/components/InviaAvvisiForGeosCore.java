@@ -13,12 +13,14 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 import javax.ws.rs.client.Client;
@@ -454,7 +456,7 @@ public class InviaAvvisiForGeosCore {
 			////String codiceCbill;
 			////String codiceAut;
 			// PAGONET-368
-			
+
 			for (Flusso f : listaFlussi) {
 				for (Debitore deb : f.listaDebitori) {
 					for (Documento doc : deb.listaDocumenti) {
@@ -479,6 +481,7 @@ public class InviaAvvisiForGeosCore {
 						String tipoTemplate = "";
 
 						try {
+							
 							if("POSTE".equals(tipoIban))
 									tipoTemplate = "POSTE_";
 							else
@@ -499,7 +502,18 @@ public class InviaAvvisiForGeosCore {
 						//PAGONET-541 - inizio
 						if(doc.flagMultiBeneficiario!=null && doc.flagMultiBeneficiario.equals("Y")) {
 							System.out.println("template post flag flagMultiBeneficiario ");
-							tipoTemplate = "STANDARD_";
+							
+							if(inviaAvvisiForGeosContext.getProperties().getProperty(String.format("archivioCarichiWs.%s.STAMPAPOSTEMB", codiceUtente))
+									.equals("N")) {
+								tipoTemplate = "STANDARD_";
+							}else {
+								if(tipoIban.equals("POSTE")) {
+									tipoTemplate = "POSTE_";
+								}else {
+									tipoTemplate = "STANDARD_";
+								}
+							}
+
 						}
 						//PAGONET-541 - fine
 						// raggruppamento
