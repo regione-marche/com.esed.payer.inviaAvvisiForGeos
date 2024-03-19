@@ -22,8 +22,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.seda.commons.logger.CustomLoggerManager;
-import com.seda.commons.logger.LoggerWrapper;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -65,7 +63,6 @@ import com.seda.payer.pgec.webservice.commons.source.CommonsServiceLocator;
 
 public class InviaAvvisiForGeosCore {
 	private static Logger logger = Logger.getLogger(InviaAvvisiForGeosCore.class);
-	private static LoggerWrapper commonLogger = CustomLoggerManager.get(InviaAvvisiForGeosCore.class);
 	private static String PRINT_REPORT = "REPORT";
 	private static String PRINT_SYSOUT = "SYSOUT";
 
