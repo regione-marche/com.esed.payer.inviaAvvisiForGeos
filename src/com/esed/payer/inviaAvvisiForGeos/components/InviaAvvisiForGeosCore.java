@@ -21,6 +21,9 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import com.seda.commons.logger.CustomLoggerManager;
+import com.seda.commons.logger.LoggerWrapper;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -62,6 +65,7 @@ import com.seda.payer.pgec.webservice.commons.source.CommonsServiceLocator;
 
 public class InviaAvvisiForGeosCore {
 	private static Logger logger = Logger.getLogger(InviaAvvisiForGeosCore.class);
+	private static LoggerWrapper commonLogger = CustomLoggerManager.get(InviaAvvisiForGeosCore.class);
 	private static String PRINT_REPORT = "REPORT";
 	private static String PRINT_SYSOUT = "SYSOUT";
 
@@ -516,20 +520,24 @@ public class InviaAvvisiForGeosCore {
 						// fine YLM PG22XX05
 
 						//PAGONET-541 - inizio
-						if (doc.flagMultiBeneficiario != null && doc.flagMultiBeneficiario.equals("Y")) {
-							System.out.println("template post flag flagMultiBeneficiario ");
+						if (Objects.equals(doc.flagMultiBeneficiario, "Y")) {
+							System.out.println("template post flag flagMultiBeneficiario");
 
-							if (confForCuteCute.get("archivioCarichiWs." + inviaAvvisiForGeosContext.getCodiceUtente() + ".STAMPAPOSTEMB") != null
-						&& confForCuteCute.get("archivioCarichiWs." + inviaAvvisiForGeosContext.getCodiceUtente() + ".STAMPAPOSTEMB").equals("N")) {
+							String templateKey = "inviaAvvisi." + inviaAvvisiForGeosContext.getCodiceUtente() + ".STAMPAPOSTEMB";
+							String confValue = confForCuteCute.get(templateKey);
+
+							if (confValue != null && Objects.equals(confValue, "N")) {
+								System.out.println("valore chiave = N e multibeneficiario stampo solo banca");
 								tipoTemplate = "STANDARD_";
-							}
-						 else {
-							if (tipoIban.equals("POSTE")) {
-								tipoTemplate = "POSTE_";
 							} else {
-								tipoTemplate = "STANDARD_";
+								if(Objects.equals(confValue, "Y")) {
+									System.out.println("valore chiave = Y e multibeneficiario stampo poste se postale o banca");
+									tipoTemplate = Objects.equals(tipoIban, "POSTE") ? "POSTE_" : "STANDARD_";
+								}
 							}
-						  }
+						}else {
+							System.out.println("non multibeneficiario stampo poste se postale o banca");
+							tipoTemplate = Objects.equals(tipoIban, "POSTE") ? "POSTE_" : "STANDARD_";
 						}
 
 						//PAGONET-541 - fine
