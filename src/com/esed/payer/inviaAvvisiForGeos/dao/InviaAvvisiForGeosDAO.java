@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import com.esed.payer.inviaAvvisiForGeos.config.InviaAvvisiForGeosContext;
 import com.seda.data.helper.Helper;
 import com.seda.data.helper.HelperException;
+import com.seda.data.procedure.reflection.MetaProcedure;
+import com.seda.data.procedure.reflection.ProcedureReflectorException;
 import com.seda.payer.commons.inviaAvvisiForGeos.AvvisoRata;
 import com.seda.payer.commons.inviaAvvisiForGeos.Debitore;
 import com.seda.payer.commons.inviaAvvisiForGeos.Documento;
@@ -46,7 +48,7 @@ public class InviaAvvisiForGeosDAO {
     ArrayList<Flusso> listaFlussi = new ArrayList<Flusso>();
     try {
       if (stat == null) {
-        stat = Helper.prepareCall(connection, schema, "PY512SP_AVVI");
+        stat = MetaProcedure.prepareCall(connection, schema, "PY512SP_AVVI");
       }
       stat.setString(1, codiceUtente);
       stat.setString(2, "");
@@ -111,7 +113,7 @@ public class InviaAvvisiForGeosDAO {
       throw new Exception(e);
     } catch (IllegalArgumentException e) {
       throw new Exception(e);
-    } catch (HelperException e) {
+    } catch (ProcedureReflectorException e) {
       throw new Exception(e);
     } finally {
     }
