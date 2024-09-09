@@ -10,8 +10,6 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.esed.payer.inviaAvvisiForGeos.config.InviaAvvisiForGeosResponse;
@@ -23,12 +21,12 @@ import com.seda.data.datasource.DataSourceFactoryImpl;
 
 /** Avvio da riga comando della procedura.
  * Uso commons-cli-1.2 che l'ultima versione funzionante su Java6 */
+@SuppressWarnings("deprecation")
 public class Main {
   String fileConfig;
   String codiceUtente;
 
-@SuppressWarnings("deprecation")
-public static void main(String... argv) {
+  public static void main(String... argv) {
     Options options = new Options();
     options.addOption("f", "config", true, "File di configurazione .properties");
     options.addOption("u", "codiceUtente", true, "Codice Utente (cutecute)");

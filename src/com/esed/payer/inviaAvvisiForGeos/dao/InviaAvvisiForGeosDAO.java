@@ -8,34 +8,45 @@ import java.sql.Types;
 import java.util.ArrayList;
 
 import com.esed.payer.inviaAvvisiForGeos.config.InviaAvvisiForGeosContext;
-import com.seda.data.helper.Helper;
-import com.seda.data.helper.HelperException;
-import com.seda.data.procedure.reflection.MetaProcedure;
 import com.seda.data.procedure.reflection.ProcedureReflectorException;
 import com.seda.payer.commons.inviaAvvisiForGeos.AvvisoRata;
 import com.seda.payer.commons.inviaAvvisiForGeos.Debitore;
 import com.seda.payer.commons.inviaAvvisiForGeos.Documento;
 import com.seda.payer.commons.inviaAvvisiForGeos.Flusso;
 import com.seda.payer.commons.inviaAvvisiForGeos.Tributo;
+import com.seda.payer.core.handler.BaseDaoHandler;
 
 /**
  * Query al DB tramite stored procedure... ritorna oggetti del model. PG170100
  *
  * @author luciano.dercoli@gmail.com
  */
-public class InviaAvvisiForGeosDAO {
+//inizio LP 20240822
+//public class InviaAvvisiForGeosDAO {
+//
+//	InviaAvvisiForGeosContext context;
+//	Connection connection;
+//	String schema;
+//
+//
+//	protected CallableStatement stat = null;
+//
+//	public InviaAvvisiForGeosDAO(InviaAvvisiForGeosContext cont, Connection connection, String schema) {
+//		this.context = cont;
+//		this.connection = connection;
+//		this.schema = schema;
+//	}
+
+public class InviaAvvisiForGeosDAO extends BaseDaoHandler {
 
 	InviaAvvisiForGeosContext context;
-	Connection connection;
-	String schema;
-
 	protected CallableStatement stat = null;
 
 	public InviaAvvisiForGeosDAO(InviaAvvisiForGeosContext cont, Connection connection, String schema) {
+		super(connection, schema);
 		this.context = cont;
-		this.connection = connection;
-		this.schema = schema;
 	}
+//fine LP 20240822
 
 	/**
 	 * Lista di avvisi, strutturata ad albero come da query DB:
@@ -48,7 +59,10 @@ public class InviaAvvisiForGeosDAO {
     ArrayList<Flusso> listaFlussi = new ArrayList<Flusso>();
     try {
       if (stat == null) {
-        stat = MetaProcedure.prepareCall(connection, schema, "PY512SP_AVVI");
+    	//inizio LP 20240822
+        //stat = MetaProcedure.prepareCall(connection, schema, "PY512SP_AVVI");
+        stat = prepareCall("PY512SP_AVVI");
+    	//fine LP 20240822
       }
       stat.setString(1, codiceUtente);
       stat.setString(2, "");
@@ -277,5 +291,17 @@ public class InviaAvvisiForGeosDAO {
 
 		return trib;
 	}
+
+	//inizio LP 20240822
+	public void close() {
+		if(stat != null) {
+			try {
+				stat.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	//fine LP 20240822
 
 }
