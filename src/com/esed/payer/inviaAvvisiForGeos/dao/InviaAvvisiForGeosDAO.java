@@ -8,6 +8,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 
 import com.esed.payer.inviaAvvisiForGeos.config.InviaAvvisiForGeosContext;
+import com.seda.data.dao.DAOHelper;
 import com.seda.data.procedure.reflection.ProcedureReflectorException;
 import com.seda.payer.commons.inviaAvvisiForGeos.AvvisoRata;
 import com.seda.payer.commons.inviaAvvisiForGeos.Debitore;
@@ -40,7 +41,7 @@ import com.seda.payer.core.handler.BaseDaoHandler;
 public class InviaAvvisiForGeosDAO extends BaseDaoHandler {
 
 	InviaAvvisiForGeosContext context;
-	protected CallableStatement stat = null;
+	//protected CallableStatement stat = null; //LP 20241001 - PGNTAFGEOS-6
 
 	public InviaAvvisiForGeosDAO(InviaAvvisiForGeosContext cont, Connection connection, String schema) {
 		super(connection, schema);
@@ -57,13 +58,17 @@ public class InviaAvvisiForGeosDAO extends BaseDaoHandler {
 	 */
   public synchronized ArrayList<Flusso> listAnagrafiche512(String codiceUtente) throws Exception {
     ArrayList<Flusso> listaFlussi = new ArrayList<Flusso>();
+    //inizio LP 20241001 - PGNTAFGEOS-6
+    CallableStatement stat = null;
+    ResultSet resultSet = null;
+    //fine LP 20241001 - PGNTAFGEOS-6
     try {
-      if (stat == null) {
-    	//inizio LP 20240822
+        //inizio LP 20241001 - PGNTAFGEOS-6	
+        //if (stat == null) {
         //stat = MetaProcedure.prepareCall(connection, schema, "PY512SP_AVVI");
-        stat = prepareCall("PY512SP_AVVI");
-    	//fine LP 20240822
-      }
+    	//}
+    	stat = prepareCall("PY512SP_AVVI");
+    	//fine LP 20241001 - PGNTAFGEOS-6
       stat.setString(1, codiceUtente);
       stat.setString(2, "");
       stat.setString(3, "");
@@ -73,7 +78,10 @@ public class InviaAvvisiForGeosDAO extends BaseDaoHandler {
       stat.registerOutParameter(7, Types.VARCHAR); // MESS ERR
       stat.execute();
 
-      ResultSet resultSet = stat.getResultSet();
+      //inizio LP 20241001 - PGNTAFGEOS-6
+      //ResultSet resultSet = stat.getResultSet();
+      resultSet = stat.getResultSet();
+      //fine LP 20241001 - PGNTAFGEOS-6
 
       if (resultSet != null && resultSet.next()) {
         // primo avviso con tutte le colonne Debitore/Docum/Avviso
@@ -121,7 +129,7 @@ public class InviaAvvisiForGeosDAO extends BaseDaoHandler {
         }
       }
       resultSet.close();
-
+      resultSet = null; //LP 20241001 - PGNTAFGEOS-6
     } catch (SQLException e) {
       e.printStackTrace();	
       throw new Exception(e);
@@ -130,6 +138,10 @@ public class InviaAvvisiForGeosDAO extends BaseDaoHandler {
     } catch (ProcedureReflectorException e) {
       throw new Exception(e);
     } finally {
+    	//inizio LP 20241001 - PGNTAFGEOS-6
+    	DAOHelper.closeIgnoringException(resultSet);
+    	DAOHelper.closeIgnoringException(stat);
+    	//fine LP 20241001 - PGNTAFGEOS-6
     }
 
     return listaFlussi;
@@ -291,17 +303,5 @@ public class InviaAvvisiForGeosDAO extends BaseDaoHandler {
 
 		return trib;
 	}
-
-	//inizio LP 20240822
-	public void close() {
-		if(stat != null) {
-			try {
-				stat.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	//fine LP 20240822
 
 }

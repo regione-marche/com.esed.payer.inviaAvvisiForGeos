@@ -89,6 +89,12 @@ public class InviaAvvisiForGeosCore {
 	//private static PropertiesTree configuration;
 
 	InviaAvvisiForGeosDAO inviaAvvisiForGeosDAO = null;
+	//inizio LP 20241001 - PGNTAFGEOS-6
+	ConfigurazioneDao configurazioneDao = null;
+	DettaglioFlussoOtticoDao dettaglioFlussoOtticoDao = null;
+	TestataFlussoOtticoDao testataFlussoOtticoDao = null;
+	ElaborazioneFlussiDao elaborazioneFlussiDao = null;
+	//fine LP 20241001 - PGNTAFGEOS-6
 
 	/** configurazione per ogni Ente del payer */
 	ArrayList<Configurazione> confPayerList;
@@ -142,8 +148,26 @@ public class InviaAvvisiForGeosCore {
 			inviaAvvisiForGeosRespons.setCode("30"); //Da verificare se mantenere 30 come per altri processi
 														// oppure impostare 12
 			inviaAvvisiForGeosRespons.setMessage("Operazione terminata con errori ");
+		//inizio LP 20241001 - PGNTAFGEOS-6
+		} finally {
+			if(configurazioneDao != null) {
+				configurazioneDao.finalize();
+				configurazioneDao = null;
+			}
+			if(dettaglioFlussoOtticoDao != null) {
+				dettaglioFlussoOtticoDao.finalize();
+				dettaglioFlussoOtticoDao = null;
+			}
+			if(testataFlussoOtticoDao != null) {
+				testataFlussoOtticoDao.finalize();
+				testataFlussoOtticoDao = null;
+			}
+			if(elaborazioneFlussiDao != null) {
+				elaborazioneFlussiDao.finalize();
+				elaborazioneFlussiDao = null;
+			}
+		//fine LP 20241001 - PGNTAFGEOS-6
 		}
-
 		return inviaAvvisiForGeosRespons;
 	}
 
@@ -167,7 +191,7 @@ public class InviaAvvisiForGeosCore {
 		w.append("" + "Invio Flussi Avvisi 512 per GEOS " + "\n");
 		w.append(System.getProperties().get("java.specification.vendor") + " ");
 		w.append(System.getProperties().get("java.version") + "\n");
-		w.append("(C) Copyright 2015 Maggioli Spa" + "\n");
+		w.append("(C) Copyright 2024 Maggioli Spa" + "\n");
 		w.append("\n");
 		System.out.println(w.toString());
 		w = null;
@@ -221,8 +245,15 @@ public class InviaAvvisiForGeosCore {
 		connection = this.datasource.getConnection();
 		connection.setAutoCommit(true);
 
-		ConfigurazioneDao daoObj = new ConfigurazioneDao(connection, schema);
-
+		//inizio LP 20241001 - PGNTAFGEOS-6
+		//ConfigurazioneDao daoObj = new ConfigurazioneDao(connection, schema);
+		configurazioneDao = new ConfigurazioneDao(connection, schema);
+		dettaglioFlussoOtticoDao = new DettaglioFlussoOtticoDao(connection, schema);
+		testataFlussoOtticoDao = new TestataFlussoOtticoDao(connection, schema);
+		elaborazioneFlussiDao = new ElaborazioneFlussiDao(connection, schema);
+		ConfigurazioneDao daoObj = configurazioneDao; 
+		//fine LP 20241001 - PGNTAFGEOS-6
+		
 		// Per ogni configuration, (filtro solo i Payer)
 		confPayerList = new ArrayList<Configurazione>(daoObj.doList());
 		for (int i = 0; i < confPayerList.size();) {
@@ -343,8 +374,8 @@ public class InviaAvvisiForGeosCore {
         		throw new Exception(" - errore in recuperaListaFunzioniEnte: " + configPagamentoResponse.getRetMessage());
         	} else {
         		if (configPagamentoResponse.getListConfigPagamento() != null){
-        			//TODO. Si potrebbe nel caso della sendRT prendere il primo configPagamento a prescindere da codTipologiaServizio ....
-        			//      e nel caso non fare andare in errore se codTipologiaServizio non e' presente
+        			//Si potrebbe nel caso della sendRT prendere il primo configPagamento a prescindere da codTipologiaServizio ....
+        			//e nel caso non fare andare in errore se codTipologiaServizio non e' presente
     	    		for(int i = 0; i < configPagamentoResponse.getListConfigPagamento().length; i++){
     					if (configPagamentoResponse.getListConfigPagamento(i).getCodTipologiaServizio().equals(codTipologiaServizio)) {
     						configPagamento = configPagamentoResponse.getListConfigPagamento(i);
@@ -444,7 +475,9 @@ public class InviaAvvisiForGeosCore {
 		Boolean erroreFlusso = false; 
 		// fine YLM PG22XX05
 		try {
-			inviaAvvisiForGeosDAO = new InviaAvvisiForGeosDAO(inviaAvvisiForGeosContext, connection, schema);
+			//inizio LP 20241001 - PGNTAFGEOS-6
+			//inviaAvvisiForGeosDAO = new InviaAvvisiForGeosDAO(inviaAvvisiForGeosContext, connection, schema);
+			//fine LP 20241001 - PGNTAFGEOS-6
 			/** cutecute */
 			String codiceUtente = inviaAvvisiForGeosContext.getCodiceUtente();
 			System.out.println("PY512SP_AVVI inizio");
@@ -691,9 +724,11 @@ public class InviaAvvisiForGeosCore {
 						// Quando ho trasmesso tutti i files di un flusso posso marcare il
 						// corrispondente
 						// flusso sul DB come "inviato in stampa"
-						new ElaborazioneFlussiDao(connection, schema).doUpdateLogFlussi(id, null, null, 0, null, null, null, null, null, null, "S");
+						//inizio LP 20241001 - PGNTAFGEOS-6
+						//new ElaborazioneFlussiDao(connection, schema).doUpdateLogFlussi(id, null, null, 0, null, null, null, null, null, null, "S");
+						elaborazioneFlussiDao.doUpdateLogFlussi(id, null, null, 0, null, null, null, null, null, null, "S");
+						//fine LP 20241001 - PGNTAFGEOS-6
 					}
-					
 				} else {
 					throw new Exception(String.format("Errore chiamata servizio PagoPAPdfService - Status: %s, Body: %s",
 						response.getStatus(), response.getEntity()));
@@ -773,7 +808,10 @@ public class InviaAvvisiForGeosCore {
 					// Quando ho trasmesso tutti i files di un flusso posso marcare il
 					// corrispondente
 					// flusso sul DB come "inviato in stampa"
-					new ElaborazioneFlussiDao(connection, schema).doUpdateLogFlussi(id, null, null, 0, null, null, null, null, null, null, "S");
+					//inizio LP 20241001 - PGNTAFGEOS-6
+					//new ElaborazioneFlussiDao(connection, schema).doUpdateLogFlussi(id, null, null, 0, null, null, null, null, null, null, "S");
+					elaborazioneFlussiDao.doUpdateLogFlussi(id, null, null, 0, null, null, null, null, null, null, "S");
+					//fine LP 20241001 - PGNTAFGEOS-6
 				}
 				// printRow(myPrintingKeyANA_SYSOUT, "Elaborazione completata con successo");
 				break;
@@ -787,14 +825,10 @@ public class InviaAvvisiForGeosCore {
 			// printRow(myPrintingKeyANA_SYSOUT, "Elaborazione completata con errori");
 			throw new Exception(e);
 		} finally {
-			//inizio LP 20240822
-			if(inviaAvvisiForGeosDAO != null) {
-				inviaAvvisiForGeosDAO.close();
-			}
-			//fine LP 20240822
-//			connection.commit();
-			connection.setAutoCommit(true);
+			//connection.commit();
+			//connection.setAutoCommit(true);
 			connection.close();
+			connection = null; //LP 20241001 - PGNTAFGEOS-6
 		}
 	}
 
@@ -870,8 +904,10 @@ public class InviaAvvisiForGeosCore {
 		totRec.setOperatoreUltimoAgg("Batch");
 //		totRec.setPaginaInizio(0);
 //		totRec.setPaginaFine(0);
-
-		TestataFlussoOtticoDao totDao = new TestataFlussoOtticoDao(connection, schema);
+		//inizio LP 20241001 - PGNTAFGEOS-6
+		//TestataFlussoOtticoDao totDao = new TestataFlussoOtticoDao(connection, schema);
+		TestataFlussoOtticoDao totDao = testataFlussoOtticoDao;
+		//fine LP 20241001 - PGNTAFGEOS-6
 		totDao.doInsert(totRec);
 
 		for (Documento doc : file.listaDocumenti) {
@@ -910,7 +946,10 @@ public class InviaAvvisiForGeosCore {
 				dett.setCodiceImpostaServizio(doc.codiceImpostaServizio);	//PG22XX01_GG1
 
 				logger.debug("TEST: INSERIMENTO TABELLA DOT: " + dett.toString());	
-				DettaglioFlussoOtticoDao detDao = new DettaglioFlussoOtticoDao(connection, schema);
+				//inizio LP 20241001 - PGNTAFGEOS-6
+				//DettaglioFlussoOtticoDao detDao = new DettaglioFlussoOtticoDao(connection, schema);
+				DettaglioFlussoOtticoDao detDao = dettaglioFlussoOtticoDao;
+				//fine LP 20241001 - PGNTAFGEOS-6
 				//Boolean retVal = detDao.doInsert(dett);
 				detDao.doInsert(dett);
 
