@@ -8,9 +8,6 @@ import com.seda.emailsender.webservices.dati.EMailSenderRequestType;
 import com.seda.emailsender.webservices.dati.EMailSenderResponse;
 import com.seda.emailsender.webservices.source.EMailSenderInterface;
 import com.seda.emailsender.webservices.source.EMailSenderServiceLocator;
-import com.seda.emailsender.webservices.srv.EMailSenderFaultType;
-
-
 
 public class EMailSender
 {
